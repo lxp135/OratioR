@@ -1,13 +1,13 @@
-Thanks for sending a pull request! Please review the [guidelines for contributing](CONTRIBUTING.md), then fill out the blanks below.
+感谢您发送 Pull Request！请先查看[贡献指南](CONTRIBUTING.md)，然后填写以下内容。
 
-What does this implement/fix? Explain your changes
+本次实现了什么/修复了什么？请说明您的更改
 --------------------------------------------------
 …
 
-Does this close any currently open issues?
+本次是否关闭了当前已开启的任何 Issue？
 ------------------------------------------
 …
 
-Any other comments?
+还有其他意见吗？
 -------------------
 …

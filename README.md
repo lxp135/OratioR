@@ -1,30 +1,30 @@
 # OnlyR <img src="https://ci.appveyor.com/api/projects/status/ap0q5inx86kofqwi?svg=true">
 
-Windows audio recorder using C#, WPF, NAudio, NAudio.Lame, AutoMapper, GalaSoft MvvmLight, 
-Newtonsoft, Serilog. The minimal UI features a start/stop button and volume meter. 
-Stores recordings in a folder hierarchy according to date.
+Windows 音频录音器，使用 C#、WPF、NAudio、NAudio.Lame、AutoMapper、GalaSoft MvvmLight、
+Newtonsoft、Serilog 构建。极简界面包含开始/停止按钮和音量表。
+录音文件按日期分层存储在文件夹中。
 
 <img src="http://cv8.org.uk/soundbox/OnlyR/Images/OnlyR04.png" alt="OnlyR"> 
 
-### System Requirements
+### 系统要求
 
-* Windows 10 or later
-* 2GB RAM
-* 15MB Hard disk space
-* Audio recording device
+* Windows 10 或更高版本
+* 2GB 内存
+* 15MB 硬盘空间
+* 录音设备
 
-### Download
+### 下载
 
-If you just want to install the application, please download the [OnlyRSetup.exe](https://github.com/AntonyCorbett/OnlyR/releases/latest) file (there is also a portable version if you'd prefer to just copy a folder).
+如果只想安装应用程序，请下载 [OnlyRSetup.exe](https://github.com/AntonyCorbett/OnlyR/releases/latest) 文件（也提供便携版，直接复制文件夹即可使用）。
 
-### Help
+### 帮助
 
-See the [wiki](https://github.com/AntonyCorbett/OnlyR/wiki) for basic instructions and for information on where to get further help.
+请参阅 [Wiki](https://github.com/AntonyCorbett/OnlyR/wiki) 获取基本使用说明以及进一步帮助的获取途径。
 
-### Building from source
+### 从源码构建
 
-To build OnlyR yourself or contribute changes, see [CONTRIBUTING.md](CONTRIBUTING.md) for local setup, including the mise / lefthook dev-tooling steps.
+如需自行构建 OnlyR 或贡献代码，请参阅 [CONTRIBUTING.md](CONTRIBUTING.md) 了解本地搭建步骤，包括 mise / lefthook 开发工具链配置。
 
-### License, etc
+### 许可证等
 
-OnlyR is Copyright &copy; 2017, 2025 Antony Corbett and other contributors under the [MIT license](LICENSE).
+OnlyR 版权所有 &copy; 2017, 2025 Antony Corbett 及其他贡献者，基于 [MIT 许可证](LICENSE)。
