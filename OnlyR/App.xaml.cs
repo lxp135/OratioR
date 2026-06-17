@@ -1,27 +1,20 @@
 ﻿using CommunityToolkit.Mvvm.DependencyInjection;
 using CommunityToolkit.Mvvm.Messaging;
-using MaterialDesignThemes.Wpf;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Win32;
-using OnlyR.Model;
 using OnlyR.Services.Audio;
-using OnlyR.Services.AudioSilence;
+using OnlyR.Services.Chunking;
+using OnlyR.Services.Config;
 using OnlyR.Services.Options;
-using OnlyR.Services.PurgeRecordings;
-using OnlyR.Services.RecordingCopies;
-using OnlyR.Services.RecordingDestination;
-using OnlyR.Services.Snackbar;
+using OnlyR.Tray;
 using OnlyR.Utils;
 using OnlyR.ViewModel;
 using OnlyR.ViewModel.Messages;
 using Serilog;
+using System;
 using System.Diagnostics.CodeAnalysis;
-using System.Globalization;
-using System.IO;
 using System.Runtime.Versioning;
 using System.Threading;
 using System.Windows;
-using System.Windows.Interop;
 using System.Windows.Threading;
 
 [assembly: SupportedOSPlatform("windows7.0")]
@@ -39,29 +32,29 @@ public partial class App
     private readonly string _appString = "OnlyRAudioRecording";
     private Mutex? _appMutex;
 
+    private TrayApp? _trayApp;
+
     protected override void OnStartup(StartupEventArgs e)
     {
+        ShutdownMode = ShutdownMode.OnExplicitShutdown;
+
         if (AnotherInstanceRunning())
         {
             Shutdown();
-        }
-        else
-        {
-            ConfigureLogger();
+            return;
         }
 
         ConfigureServices();
-        ApplyStartupTheme();
-
-        SystemEvents.UserPreferenceChanged += OnSystemThemeChanged;
         Current.DispatcherUnhandledException += CurrentDispatcherUnhandledException;
+
+        _trayApp = new TrayApp();
+        _trayApp.Initialize();
     }
 
     private void CurrentDispatcherUnhandledException(object sender, DispatcherUnhandledExceptionEventArgs e)
     {
-        // unhandled exceptions thrown from UI thread
         e.Handled = true;
-        Log.Logger.Fatal(e.Exception, "Unhandled exception");
+        Log.Fatal(e.Exception, "Unhandled exception");
         Current.Shutdown();
     }
 
@@ -71,13 +64,9 @@ public partial class App
 
         serviceCollection.AddSingleton<IOptionsService, OptionsService>();
         serviceCollection.AddSingleton<ICommandLineService, CommandLineService>();
-        serviceCollection.AddSingleton<IRecordingDestinationService, RecordingDestinationService>();
         serviceCollection.AddSingleton<IAudioService, AudioService>();
-        serviceCollection.AddSingleton<ICopyRecordingsService, CopyRecordingsService>();
-        serviceCollection.AddSingleton<IDriveEjectionService, DriveEjectionService>();
-        serviceCollection.AddSingleton<ISnackbarService, SnackbarService>();
-        serviceCollection.AddSingleton<IPurgeRecordingsService, PurgeRecordingsService>();
-        serviceCollection.AddSingleton<ISilenceService, SilenceService>();
+        serviceCollection.AddSingleton<IAudioCaptureService, AudioCaptureService>();
+        serviceCollection.AddSingleton<IConfigRepository, ConfigRepository>();
         serviceCollection.AddSingleton<MainViewModel>();
 
         var serviceProvider = serviceCollection.BuildServiceProvider();
@@ -86,102 +75,15 @@ public partial class App
 
     protected override void OnExit(ExitEventArgs e)
     {
-        SystemEvents.UserPreferenceChanged -= OnSystemThemeChanged;
+        _trayApp?.Dispose();
         _appMutex?.Dispose();
-        Log.Logger.Information("==== Exit ====");
+        Log.Information("==== Exit ====");
     }
 
     protected override void OnSessionEnding(SessionEndingCancelEventArgs e)
     {
         WeakReferenceMessenger.Default.Send(new SessionEndingMessage(e));
         base.OnSessionEnding(e);
-    }
-
-    private static void ConfigureLogger()
-    {
-        var logsDirectory = FileUtils.GetLogFolder();
-
-#if DEBUG
-        Log.Logger = new LoggerConfiguration()
-            .MinimumLevel.Debug()
-            .WriteTo.File(Path.Combine(logsDirectory, "log-.txt"), retainedFileCountLimit: 28, rollingInterval: RollingInterval.Day, formatProvider: CultureInfo.InvariantCulture)
-            .CreateLogger();
-#else
-            Log.Logger = new LoggerConfiguration()
-                .MinimumLevel.Information()
-                .WriteTo.File(Path.Combine(logsDirectory, "log-.txt"), retainedFileCountLimit: 28, rollingInterval: RollingInterval.Day, formatProvider: CultureInfo.InvariantCulture)
-                .CreateLogger();
-#endif
-
-        Log.Logger.Information("==== Launched ====");
-    }
-
-    internal static void ApplyTheme(AppTheme mode)
-    {
-        var isDark = mode switch
-        {
-            AppTheme.Dark => true,
-            AppTheme.System => SystemThemeHelper.IsSystemDarkTheme(),
-            _ => false,
-        };
-
-        var paletteHelper = new PaletteHelper();
-        var theme = paletteHelper.GetTheme();
-        theme.SetBaseTheme(isDark ? Theme.Dark : Theme.Light);
-        paletteHelper.SetTheme(theme);
-
-        ApplyTitleBarTheme(isDark);
-    }
-
-    internal static void ApplyTitleBarTheme(Window window)
-    {
-        var paletteHelper = new PaletteHelper();
-        var theme = paletteHelper.GetTheme();
-        var isDark = theme.GetBaseTheme() == BaseTheme.Dark;
-        SetTitleBarDarkMode(window, isDark);
-    }
-
-    private static void ApplyTitleBarTheme(bool isDark)
-    {
-        foreach (Window window in Current.Windows)
-        {
-            SetTitleBarDarkMode(window, isDark);
-        }
-    }
-
-    private static void SetTitleBarDarkMode(Window window, bool isDark)
-    {
-        var darkMode = isDark ? 1 : 0;
-        var hwnd = new WindowInteropHelper(window).Handle;
-        if (hwnd != nint.Zero)
-        {
-            _ = NativeMethods.DwmSetWindowAttribute(
-                hwnd,
-                NativeMethods.DwmwaUseImmersiveDarkMode,
-                ref darkMode,
-                sizeof(int));
-        }
-    }
-
-    private static void ApplyStartupTheme()
-    {
-        var optionsService = Ioc.Default.GetService<IOptionsService>();
-        if (optionsService != null)
-        {
-            ApplyTheme(optionsService.Options.AppTheme ?? AppTheme.System);
-        }
-    }
-
-    private static void OnSystemThemeChanged(object sender, UserPreferenceChangedEventArgs e)
-    {
-        if (e.Category == UserPreferenceCategory.General)
-        {
-            var optionsService = Ioc.Default.GetService<IOptionsService>();
-            if (optionsService?.Options.AppTheme == AppTheme.System)
-            {
-                ApplyTheme(AppTheme.System);
-            }
-        }
     }
 
     private bool AnotherInstanceRunning()

@@ -19,8 +19,6 @@ public interface IAudioService
 
     event EventHandler ResumedEvent;
 
-    RecordingDeviceItem[] GetRecordingDeviceList();
-
     void StartRecording(RecordingCandidate candidateFile, IOptionsService optionsService);
 
     void StopRecording(bool fadeOut);

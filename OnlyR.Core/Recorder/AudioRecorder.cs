@@ -18,7 +18,7 @@ namespace OnlyR.Core.Recorder;
 /// of the application.
 /// </summary>
 [ExcludeFromCodeCoverage]
-public sealed class AudioRecorder : IDisposable
+public class AudioRecorder : IDisposable
 {
     // use these 2 together. Experiment to get the best VU display...
     private const int RequiredReportingIntervalMs = 40;
@@ -35,10 +35,12 @@ public sealed class AudioRecorder : IDisposable
     private string? _finalRecordingFilePath;
 
     private int _dampedLevel;
+    private bool _firstDataLogged;
 
     public AudioRecorder()
     {
         _recordingStatus = RecordingStatus.NotRecording;
+        _firstDataLogged = false;
     }
 
     public event EventHandler<RecordingProgressEventArgs>? ProgressEvent;
@@ -66,6 +68,7 @@ public sealed class AudioRecorder : IDisposable
     public void Dispose()
     {
         Cleanup();
+        GC.SuppressFinalize(this);
     }
 
     /// <summary>
@@ -101,11 +104,11 @@ public sealed class AudioRecorder : IDisposable
             _audioWriter = recordingConfig.Codec switch
             {
                 AudioCodec.Mp3 => new LameMP3FileWriter(
-                    recordingConfig.DestFilePath,
+                    recordingConfig.DestFilePath!,
                     _waveSource.WaveFormat,
                     recordingConfig.Mp3BitRate!.Value,
                     CreateTag(recordingConfig)),
-                AudioCodec.Wav => new WaveFileWriter(recordingConfig.DestFilePath, _waveSource.WaveFormat),
+                AudioCodec.Wav => new WaveFileWriter(recordingConfig.DestFilePath!, _waveSource.WaveFormat),
                 _ => throw new NotSupportedException("Unsupported codec"),
             };
 
@@ -124,18 +127,23 @@ public sealed class AudioRecorder : IDisposable
 
     private void ConfigureSilenceOut()
     {
-        // WasapiLoopbackCapture doesn't record any audio when nothing is playing
-        // so we must play some silence!
-
         if (_waveSource?.WaveFormat == null)
         {
             return;
         }
 
-        var silence = new SilenceProvider(_waveSource.WaveFormat);
-        _silenceWaveOut = new WaveOutEvent();
-        _silenceWaveOut.Init(silence);
-        _silenceWaveOut.Play();
+        try
+        {
+            var silence = new SilenceProvider(_waveSource.WaveFormat);
+            _silenceWaveOut = new WaveOutEvent();
+            _silenceWaveOut.Init(silence);
+            _silenceWaveOut.Play();
+        }
+        catch (Exception)
+        {
+            _silenceWaveOut?.Dispose();
+            _silenceWaveOut = null;
+        }
     }
 
     /// <summary>
@@ -261,6 +269,12 @@ public sealed class AudioRecorder : IDisposable
         if (_isPaused)
         {
             return;
+        }
+
+        if (!_firstDataLogged)
+        {
+            _firstDataLogged = true;
+            System.Diagnostics.Debug.WriteLine($"AudioRecorder: first data received, {waveInEventArgs.BytesRecorded} bytes");
         }
 
         // as audio samples are provided by WaveIn, we hook in here

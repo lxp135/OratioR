@@ -1,6 +1,5 @@
 ﻿using OnlyR.Core.Enums;
 using OnlyR.Core.EventArgs;
-using OnlyR.Core.Models;
 using OnlyR.Core.Recorder;
 using OnlyR.Model;
 using OnlyR.Services.Options;
@@ -9,7 +8,6 @@ using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.IO;
-using System.Linq;
 
 namespace OnlyR.Services.Audio;
 
@@ -47,19 +45,6 @@ public sealed class AudioService : IAudioService, IDisposable
 
     public void Dispose() =>
         _audioRecorder.Dispose();
-
-    /// <summary>
-    /// Gets a list of Windows audio recording devices
-    /// </summary>
-    /// <returns>List of available devices</returns>
-    public RecordingDeviceItem[] GetRecordingDeviceList()
-    {
-        var devices = AudioRecorder.GetRecordingDeviceList();
-        return devices.Select(Convert).ToArray();
-    }
-
-    private RecordingDeviceItem Convert(RecordingDeviceInfo deviceInfo) =>
-        new(deviceInfo.Id, deviceInfo.Name);
 
     /// <summary>
     /// Starts recording

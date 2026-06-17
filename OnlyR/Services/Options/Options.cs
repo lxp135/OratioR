@@ -1,10 +1,7 @@
 ﻿using OnlyR.Core.Enums;
-using OnlyR.Model;
-using OnlyR.Utils;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Windows;
 
 namespace OnlyR.Services.Options;
 
@@ -32,13 +29,11 @@ public class Options
         SampleRate = DefaultSampleRate;
         ChannelCount = DefaultChannelCount;
         Mp3BitRate = DefaultMp3BitRate;
-        Genre = Properties.Resources.SPEECH;
         MaxRecordingTimeSeconds = DefaultMaxRecordingSeconds;
         RecordingDevice = DefaultRecordingDevice;
-        DestinationFolder = FileUtils.GetDefaultMyDocsDestinationFolder();
-        RecordingsLifeTimeDays = 0; // forever
+        RecordingsLifeTimeDays = 0;
         SilenceAsVolumePercentage = DefaultSilenceAsVolumePercentage;
-        Codec = AudioCodec.Mp3; // default to MP3
+        Codec = AudioCodec.Mp3;
     }
 
     public int MaxRecordingsInOneFolder { get; set; }
@@ -65,29 +60,11 @@ public class Options
 
     public bool FadeOut { get; set; }
 
-    public bool ShowPauseRecordingButton { get; set; }
-
     public bool StartRecordingOnLaunch { get; set; }
-
-    public string DestinationFolder { get; set; }
-
-    public string? AppWindowPlacement { get; set; }
-
-    public Size SettingsPageSize { get; set; }
-
-    public bool AlwaysOnTop { get; set; }
-
-    public bool AllowCloseWhenRecording { get; set; }
 
     public int RecordingsLifeTimeDays { get; set; }
 
     public string? Culture { get; set; }
-
-    public bool StartMinimized { get; set; }
-
-    public bool DarkMode { get; set; }
-
-    public AppTheme? AppTheme { get; set; }
 
     public string? UnfinishedRecordingTempPath { get; set; }
 
@@ -165,16 +142,6 @@ public class Options
         if (Codec != AudioCodec.Mp3 && Codec != AudioCodec.Wav)
         {
             Codec = AudioCodec.Mp3;
-        }
-
-        // Migrate legacy DarkMode bool to AppTheme enum
-        if (AppTheme == null)
-        {
-            AppTheme = DarkMode ? Model.AppTheme.Dark : Model.AppTheme.System;
-        }
-        else if (!Enum.IsDefined(typeof(AppTheme), AppTheme))
-        {
-            AppTheme = Model.AppTheme.System;
         }
     }
 }

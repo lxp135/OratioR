@@ -6,6 +6,7 @@
     <Compile Include="..\SolutionInfo.cs" Link="Properties\SolutionInfo.cs" />
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="NAudio" />
     <PackageReference Include="NAudio.Lame" />
     <PackageReference Include="NAudio.Wasapi" />
     <PackageReference Include="NAudio.WinForms" />

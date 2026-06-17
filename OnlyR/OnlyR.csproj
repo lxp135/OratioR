@@ -11,6 +11,11 @@
     <None Remove="iconmic.ico" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="iconmic.ico">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+  <ItemGroup>
     <Compile Include="..\SolutionInfo.cs" Link="Properties\SolutionInfo.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -19,7 +24,7 @@
   <ItemGroup>
     <PackageReference Include="CommunityToolkit.Mvvm" />
     <PackageReference Include="FluentCommandLineParser-netstandard" />
-    <PackageReference Include="MaterialDesignThemes" />
+    <PackageReference Include="Hardcodet.NotifyIcon.Wpf" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" />
     <PackageReference Include="Newtonsoft.Json" />
     <PackageReference Include="Serilog.Sinks.File" />

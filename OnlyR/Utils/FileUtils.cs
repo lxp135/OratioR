@@ -375,4 +375,53 @@ public static class FileUtils
 
         return true;
     }
+
+    /// <summary>
+    /// 删除目录中超过指定天数的文件。
+    /// </summary>
+    public static int DeleteFilesOlderThan(string directory, int days)
+    {
+        var count = 0;
+        var cutoff = DateTime.Now.AddDays(-days);
+
+        if (!Directory.Exists(directory))
+        {
+            return 0;
+        }
+
+        foreach (var file in Directory.EnumerateFiles(directory))
+        {
+            try
+            {
+                if (File.GetLastWriteTime(file) < cutoff)
+                {
+                    SafeDeleteFile(file);
+                    count++;
+                }
+            }
+            catch
+            {
+                // skip files we can't access
+            }
+        }
+
+        foreach (var dir in Directory.EnumerateDirectories(directory))
+        {
+            count += DeleteFilesOlderThan(dir, days);
+
+            try
+            {
+                if (IsDirectoryEmpty(dir))
+                {
+                    SafeDeleteFolder(dir);
+                }
+            }
+            catch
+            {
+                // skip
+            }
+        }
+
+        return count;
+    }
 }

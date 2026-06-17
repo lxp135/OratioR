@@ -1,9 +1,7 @@
 ﻿using Newtonsoft.Json;
-using OnlyR.Model;
 using OnlyR.Utils;
 using Serilog;
 using System;
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.IO;
@@ -36,9 +34,6 @@ public class OptionsService : IOptionsService
     /// <summary>
     /// Gets or sets the culture.
     /// </summary>
-    /// <value>
-    /// The culture.
-    /// </value>
     public string? Culture
     {
         get => Options.Culture;
@@ -49,57 +44,6 @@ public class OptionsService : IOptionsService
                 Options.Culture = value;
             }
         }
-    }
-
-    /// <summary>
-    /// Gets a list of supported MP3 bit rates
-    /// </summary>
-    /// <returns>Collection of BitRateItem</returns>
-    public BitRateItem[] GetSupportedMp3BitRates()
-    {
-        var result = new List<BitRateItem>();
-
-        var validBitRates = Options.GetSupportedMp3BitRates();
-        foreach (var rate in validBitRates)
-        {
-            result.Add(new BitRateItem(rate.ToString(CultureInfo.InvariantCulture), rate));
-        }
-
-        return result.ToArray();
-    }
-
-    /// <summary>
-    /// Gets a list of supported sample rates (for recording)
-    /// </summary>
-    /// <returns>Collection of SampleRateItem</returns>
-    public SampleRateItem[] GetSupportedSampleRates()
-    {
-        var result = new List<SampleRateItem>();
-
-        var validSampleRates = Options.GetSupportedSampleRates();
-        foreach (var rate in validSampleRates)
-        {
-            result.Add(new SampleRateItem(rate.ToString(CultureInfo.InvariantCulture), rate));
-        }
-
-        return result.ToArray();
-    }
-
-    /// <summary>
-    /// Gets a list of supported channel counts
-    /// </summary>
-    /// <returns>Collection of ChannelItem</returns>
-    public ChannelItem[] GetSupportedChannels()
-    {
-        var result = new List<ChannelItem>();
-
-        var channels = Options.GetSupportedChannels();
-        foreach (var c in channels)
-        {
-            result.Add(new ChannelItem(GetChannelName(c), c));
-        }
-
-        return result.ToArray();
     }
 
     /// <summary>
@@ -121,16 +65,6 @@ public class OptionsService : IOptionsService
         {
             Log.Logger.Error(ex, "Could not save settings");
         }
-    }
-
-    private static string GetChannelName(int channelsCount)
-    {
-        return channelsCount switch
-        {
-            1 => Properties.Resources.MONO,
-            2 => Properties.Resources.STEREO,
-            _ => "Unknown"
-        };
     }
 
     [MemberNotNull(nameof(Options))]
